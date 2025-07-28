@@ -15,4 +15,7 @@ else:
     #defining the SCP's name, which will be used later. Set to ??? as the user doesn't know its name yet
     print("you head to the containment cell, the door opens and closes behind you")
     print("the SCP seems to wait patently, she is humanoid, but made of a pink goo like substance")
+
+    #test
+    
     
