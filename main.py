@@ -48,11 +48,11 @@ tile_images = {
 
 # Load entities
 player_image = load_image("player.png")
-enemy_image = load_image("enemy.png")
+friend_image = load_image("friend.png")
 
 # Set up entities
 player_pos = [0, 0]  # Change this to where you want the player to start
-enemy_pos = [8, 8]   # Same for the enemy
+friend_pos = [8, 3]   # changed this to be friend across all instances, including sprite name
 
 # Walkability logic
 def is_walkable(x, y):
@@ -73,8 +73,8 @@ def draw_map():
 def draw_player():
     screen.blit(player_image, (player_pos[0] * TILE_SIZE, player_pos[1] * TILE_SIZE))
 
-def draw_enemy():
-    screen.blit(enemy_image, (enemy_pos[0] * TILE_SIZE, enemy_pos[1] * TILE_SIZE))
+def draw_friend():
+    screen.blit(friend_image, (friend_pos[0] * TILE_SIZE, friend_pos[1] * TILE_SIZE))
 
 # Game loop
 running = True
@@ -83,7 +83,7 @@ while running:
 
     draw_map()
     draw_player()
-    draw_enemy()
+    draw_friend()
 
     pygame.display.flip()
     clock.tick(FPS)
@@ -97,24 +97,27 @@ while running:
     keys = pygame.key.get_pressed()
     new_x, new_y = player_pos
 
-    if keys[pygame.K_LEFT]:
+    if keys[pygame.K_a] or keys[pygame.K_LEFT]:
         if is_walkable(new_x - 1, new_y):
             new_x -= 1
             time.sleep(0.2)
-    elif keys[pygame.K_RIGHT]:
+    elif keys[pygame.K_d]:
         if is_walkable(new_x + 1, new_y):
             new_x += 1
             time.sleep(0.2)
-    elif keys[pygame.K_UP]:
+    elif keys[pygame.K_w]:
         if is_walkable(new_x, new_y - 1):
             new_y -= 1
             time.sleep(0.2)
-    elif keys[pygame.K_DOWN]:
+    elif keys[pygame.K_s]:
         if is_walkable(new_x, new_y + 1):
             new_y += 1
             time.sleep(0.2)
 
     player_pos = [new_x, new_y]
 
+
+
 pygame.quit()
 sys.exit()
+
