@@ -13,9 +13,9 @@ FPS = 60
 
 # Tile map (your original)
 tile_map = [
-    [0, 0, 0, 3, 3, 3, 3, 0, 2, 0],
-    [0, 0, 0, 0, 3, 3, 0, 0, 0, 0],
-    [0, 0, 0, 0, 1, 1, 0, 4, 0, 0],
+    [0, 0, 4, 3, 3, 3, 3, 4, 2, 0],
+    [0, 0, 0, 4, 3, 3, 4, 0, 0, 0],
+    [0, 0, 0, 0, 4, 4, 0, 0, 0, 0],
     [2, 0, 0, 0, 1, 1, 0, 0, 0, 0],
     [0, 0, 0, 0, 1, 1, 0, 2, 0, 0],
     [0, 0, 2, 0, 1, 1, 0, 0, 0, 0],
@@ -27,6 +27,7 @@ tile_map = [
 
 # Initialize Pygame
 pygame.init()
+font = pygame.font.SysFont(None, 24)
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption("Tile Map with Entities")
 clock = pygame.time.Clock()
@@ -60,6 +61,10 @@ def is_walkable(x, y):
         return tile_map[y][x] not in (2, 3,)  # Add more blocked tile types if needed
     return False
 
+def show_message(text):
+    msg = font.render(text, True, (255, 255, 255))  # White text
+    screen.blit(msg, (20, WINDOW_HEIGHT - 40))  # Bottom-left corner
+
 # Draw map
 def draw_map():
     for y in range(MAP_HEIGHT):
@@ -75,6 +80,7 @@ def draw_player():
 
 def draw_friend():
     screen.blit(friend_image, (friend_pos[0] * TILE_SIZE, friend_pos[1] * TILE_SIZE))
+dontspam = 0  # <-- Initialize here before the game loop
 
 # Game loop
 running = True
@@ -84,6 +90,15 @@ while running:
     draw_map()
     draw_player()
     draw_friend()
+    
+    current_tile = tile_map[player_pos[1]][player_pos[0]]
+
+    # Show message inside the main loop AFTER drawing entities
+    if current_tile == 4:
+        show_message("Press E to interact.")
+        dontspam = 1
+    elif current_tile != 4:
+        dontspam = 0
 
     pygame.display.flip()
     clock.tick(FPS)
@@ -101,23 +116,20 @@ while running:
         if is_walkable(new_x - 1, new_y):
             new_x -= 1
             time.sleep(0.2)
-    elif keys[pygame.K_d]:
+    elif keys[pygame.K_d] or keys[pygame.K_RIGHT]:
         if is_walkable(new_x + 1, new_y):
             new_x += 1
             time.sleep(0.2)
-    elif keys[pygame.K_w]:
+    elif keys[pygame.K_w] or keys[pygame.K_UP]:
         if is_walkable(new_x, new_y - 1):
             new_y -= 1
             time.sleep(0.2)
-    elif keys[pygame.K_s]:
+    elif keys[pygame.K_s] or keys[pygame.K_DOWN]:
         if is_walkable(new_x, new_y + 1):
             new_y += 1
             time.sleep(0.2)
 
     player_pos = [new_x, new_y]
 
-
-
 pygame.quit()
 sys.exit()
-
