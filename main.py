@@ -4,6 +4,7 @@ import os
 import time
 
 # Constants
+game_state = "main"
 TILE_SIZE = 40
 MAP_WIDTH = 10
 MAP_HEIGHT = 10
@@ -47,6 +48,7 @@ tile_images = {
     5: load_image("doorshadow.png"),
 }
 
+
 # Load entities
 player_image = load_image("player.png")
 friend_image = load_image("friend.png")
@@ -82,6 +84,18 @@ def draw_friend():
     screen.blit(friend_image, (friend_pos[0] * TILE_SIZE, friend_pos[1] * TILE_SIZE))
 dontspam = 0  # <-- Initialize here before the game loop
 
+def handle_puzzle():
+    global game_state
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_ESCAPE]:  # Escape to leave puzzle
+        game_state = "main"
+
+def draw_puzzle():
+    screen.fill((10, 10, 10))
+    big_font = pygame.font.SysFont(None, 48)
+    text = big_font.render("Circuit Puzzle: Solve the numbers!", True, (0, 255, 0))
+    screen.blit(text, (50, WINDOW_HEIGHT // 2 - 24))
+
 # Game loop
 running = True
 while running:
@@ -94,11 +108,14 @@ while running:
     current_tile = tile_map[player_pos[1]][player_pos[0]]
 
     # Show message inside the main loop AFTER drawing entities
-    if current_tile == 4:
-        show_message("Press E to interact.")
-        dontspam = 1
-    elif current_tile != 4:
-        dontspam = 0
+    if game_state == "main":
+        if current_tile == 4:
+            show_message("Press E to interact.")
+            dontspam = 1
+            if keys[pygame.K_e]:
+                game_state = "puzzle"
+        elif current_tile != 4:
+            dontspam = 0
 
     pygame.display.flip()
     clock.tick(FPS)
@@ -130,6 +147,12 @@ while running:
             time.sleep(0.2)
 
     player_pos = [new_x, new_y]
+
+    if game_state == "puzzle":
+        # update and draw puzzle screen
+        handle_puzzle()
+        draw_puzzle()
+
 
 pygame.quit()
 sys.exit()
