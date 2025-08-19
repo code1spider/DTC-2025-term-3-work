@@ -25,6 +25,8 @@ tile_map = [
     [0, 0, 0, 0, 5, 5, 0, 0, 0, 0],
 ]
 
+
+
 pygame.init()
 font = pygame.font.SysFont(None, 24)
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -51,6 +53,10 @@ friend_image = create_dummy_surface((0, 255, 255))
 
 player_pos = [0, 0]
 friend_pos = [8, 3]
+
+
+
+
 
 def is_walkable(x, y):
     if 0 <= x < MAP_WIDTH and 0 <= y < MAP_HEIGHT:
@@ -130,7 +136,6 @@ while running:
     elif game_state == "puzzle":
         handle_puzzle()
         draw_puzzle()
-
     pygame.display.flip()
     clock.tick(FPS)
 
