@@ -12,7 +12,7 @@ WINDOW_WIDTH = MAP_WIDTH * TILE_SIZE
 WINDOW_HEIGHT = MAP_HEIGHT * TILE_SIZE
 FPS = 60
 
-# Tile map
+# Tile map (your original)
 tile_map = [
     [0, 0, 4, 3, 3, 3, 3, 4, 2, 0],
     [0, 0, 0, 4, 3, 3, 4, 0, 0, 0],
@@ -27,16 +27,15 @@ tile_map = [
 ]
 
 # Puzzle variables
-start_1 = 0
-pins_clicked = [False] * 8
-pin_values = [10, 5, 15, 20, 5, 10, -5, -10]  # Only one correct combo adds to 50
-pin_rects = []
-for i in range(8):
-    col = i % 4
-    row = i // 4
-    x = 100 + col * 60
-    y = 100 + row * 60
-    pin_rects.append(pygame.Rect(x, y, 40, 40))
+start_1 = 10
+current_pin = 1
+pins_clicked = [False, False, False, False]  # 4 pins
+pin_rects = [
+    pygame.Rect(100, 100, 40, 40),
+    pygame.Rect(160, 100, 40, 40),
+    pygame.Rect(220, 100, 40, 40),
+    pygame.Rect(280, 100, 40, 40),
+]
 
 # Initialize Pygame
 pygame.init()
@@ -56,9 +55,10 @@ tile_images = {
     1: load_image("path.png"),
     2: load_image("debris.png"),
     3: load_image("machine.png"),
-    4: load_image("floor.png"),  # Marker for friend spawn
+    4: load_image("floor.png"),  # Used as a marker for friend spawn
     5: load_image("doorshadow.png"),
 }
+
 
 # Load entities
 player_image = load_image("player.png")
@@ -68,14 +68,18 @@ end_led_on = load_image("end_led_on.png")
 end_led_wrong = load_image("end_led_wrong.png")
 
 # Set up entities
-player_pos = [0, 0]
-friend_pos = [8, 3]
+player_pos = [0, 0]  # Change this to where you want the player to start
+friend_pos = [8, 3]   # changed this to be friend across all instances, including sprite name
 
-# Walkability
+# Walkability logic
 def is_walkable(x, y):
     if 0 <= x < MAP_WIDTH and 0 <= y < MAP_HEIGHT:
-        return tile_map[y][x] not in (2, 3)
+        return tile_map[y][x] not in (2, 3,)  # Add more blocked tile types if needed
     return False
+
+def show_message(text):
+    msg = font.render(text, True, (255, 255, 255))  # White text
+    screen.blit(msg, (20, WINDOW_HEIGHT - 40))  # Bottom-left corner
 
 # Draw map
 def draw_map():
@@ -92,43 +96,43 @@ def draw_player():
 
 def draw_friend():
     screen.blit(friend_image, (friend_pos[0] * TILE_SIZE, friend_pos[1] * TILE_SIZE))
+dontspam = 0  # <-- Initialize here before the game loop
 
-# Show interaction message
-def show_message(text):
-    msg = font.render(text, True, (255, 255, 255))
-    screen.blit(msg, (20, WINDOW_HEIGHT - 40))
+def handle_puzzle():
+    global game_state
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_ESCAPE]:  # Escape to leave puzzle
+        game_state = "main"
 
-# Draw puzzle screen
 def draw_puzzle():
     screen.fill((10, 10, 10))
     big_font = pygame.font.SysFont(None, 48)
     text = big_font.render("Circuit Puzzle: Solve the numbers!", True, (0, 255, 0))
-    screen.blit(text, (50, 20))
+    screen.blit(text, (50, WINDOW_HEIGHT // 2 - 24))
 
+    # Draw pins
     for i, rect in enumerate(pin_rects):
         color = (100, 100, 100) if not pins_clicked[i] else (0, 200, 0)
         pygame.draw.rect(screen, color, rect)
         pin_text = font.render(f"Pin {i+1}", True, (255, 255, 255))
         screen.blit(pin_text, (rect.x, rect.y - 20))
 
+    # Display result LED
     if all(pins_clicked):
         if start_1 == 50:
             screen.blit(end_led_on, (400, 100))
-            win_text = font.render("Correct combination!", True, (0, 255, 0))
-            screen.blit(win_text, (400, 160))
         else:
             screen.blit(end_led_wrong, (400, 100))
-            lose_text = font.render("Incorrect. Try again.", True, (255, 0, 0))
-            screen.blit(lose_text, (400, 160))
     else:
         screen.blit(end_led_off, (400, 100))
 
+    # Show current value
     value_text = font.render(f"Value: {start_1}", True, (255, 255, 0))
     screen.blit(value_text, (50, 300))
 
 # Puzzle logic
 def handle_puzzle():
-    global game_state, start_1, pins_clicked
+    global game_state, start_1, current_pin
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -136,29 +140,19 @@ def handle_puzzle():
             sys.exit()
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             game_state = "main"
-            start_1 = 0
-            pins_clicked = [False] * 8
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             mouse_pos = pygame.mouse.get_pos()
+
             for i, rect in enumerate(pin_rects):
-                if rect.collidepoint(mouse_pos) and not pins_clicked[i]:
-                    start_1 += pin_values[i]
+                if rect.collidepoint(mouse_pos) and not pins_clicked[i] and i == current_pin - 1:
+                    start_1 += 10
                     pins_clicked[i] = True
+                    current_pin += 1
 
 # Game loop
 running = True
-dontspam = 0
-new_x, new_y = player_pos
-
 while running:
     screen.fill((0, 0, 0))
-
-    if game_state == 'puzzle':
-        handle_puzzle()
-        draw_puzzle()
-        pygame.display.flip()
-        clock.tick(FPS)
-        continue
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -169,37 +163,16 @@ while running:
     draw_player()
     draw_friend()
 
+    if game_state == 'puzzle':
+        # update and draw puzzle screen
+        handle_puzzle()
+        draw_puzzle()
+        pygame.display.flip()
+        clock.tick(FPS)
+    
     current_tile = tile_map[player_pos[1]][player_pos[0]]
 
-    if game_state == "main":
-        if current_tile >= 5:
-            new_y -= 5
-            tile_map = [
-    [6, 6, 6, 6, 5, 5, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-]
-        elif current_tile != 5:
-            tile_map = [
-    [0, 0, 4, 3, 3, 3, 3, 4, 2, 0],
-    [0, 0, 0, 4, 3, 3, 4, 0, 0, 0],
-    [0, 0, 0, 0, 4, 4, 0, 0, 0, 0],
-    [2, 0, 0, 0, 1, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 1, 1, 0, 2, 0, 0],
-    [0, 0, 2, 0, 1, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
-    [0, 0, 2, 0, 1, 1, 0, 0, 0, 2],
-    [0, 0, 0, 0, 5, 5, 0, 0, 0, 0],
-]
-
+    # Show message inside the main loop AFTER drawing entities
     if game_state == "main":
         if current_tile == 4:
             show_message("Press E to interact.")
@@ -212,8 +185,15 @@ while running:
     pygame.display.flip()
     clock.tick(FPS)
 
+    # Event handling
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
     # Movement logic
-    
+    keys = pygame.key.get_pressed()
+    new_x, new_y = player_pos
+
     if keys[pygame.K_a] or keys[pygame.K_LEFT]:
         if is_walkable(new_x - 1, new_y):
             new_x -= 1
@@ -233,7 +213,8 @@ while running:
 
     player_pos = [new_x, new_y]
 
-    
+
+
 
 pygame.quit()
 sys.exit()
