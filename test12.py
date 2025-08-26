@@ -1,4 +1,4 @@
-import pygame 
+import pygame
 import sys
 import os
 import time
@@ -12,7 +12,7 @@ WINDOW_WIDTH = MAP_WIDTH * TILE_SIZE
 WINDOW_HEIGHT = MAP_HEIGHT * TILE_SIZE
 FPS = 60
 
-# Map definitions
+# Tile map
 map_one = [
     [0, 0, 4, 3, 3, 3, 3, 4, 2, 0],
     [0, 0, 0, 4, 3, 3, 4, 0, 0, 0],
@@ -27,30 +27,18 @@ map_one = [
 ]
 
 map_two = [
-    [6, 6, 6, 6, 5, 5, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 8],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 8],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+[6, 6, 6, 6, 5, 5, 6, 6, 6, 6],
+[6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+[6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+[6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+[6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+[6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+[6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+[6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+[6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+[6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
 ]
 
-map_three = [
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-]
 # Puzzle variables
 start_1 = 0
 pins_clicked = [False] * 8
@@ -84,7 +72,6 @@ tile_images = {
     4: load_image("floor.png"),  # Marker for friend spawn
     5: load_image("doorshadow.png"),
     6: load_image("floor.png"),
-    8: load_image("doorshadow.png"),
 }
 
 # Load entities
@@ -94,7 +81,6 @@ end_led_off = load_image("end_led_off.png")
 end_led_on = load_image("end_led_on.png")
 end_led_wrong = load_image("end_led_wrong.png")
 
-# Utility to find the first tile with a given value
 def find_tile(tile_value, tile_map):
     for y, row in enumerate(tile_map):
         for x, tile in enumerate(row):
@@ -102,23 +88,23 @@ def find_tile(tile_value, tile_map):
                 return x, y
     return None
 
-# Current map and player position — start on map_two tile 5
 current_map = map_two
 player_pos = list(find_tile(5, current_map))
-
-friend_pos = [8, 3]  # stays static for now
+# Set up entities
+player_pos = [0, 0]
+friend_pos = [8, 3]
 
 # Walkability
 def is_walkable(x, y):
     if 0 <= x < MAP_WIDTH and 0 <= y < MAP_HEIGHT:
-        return current_map[y][x] not in (2, 3)
+        return tile_map[y][x] not in (2, 3)
     return False
 
 # Draw map
 def draw_map():
     for y in range(MAP_HEIGHT):
         for x in range(MAP_WIDTH):
-            tile = current_map[y][x]
+            tile = tile_map[y][x]
             image = tile_images.get(tile)
             if image:
                 screen.blit(image, (x * TILE_SIZE, y * TILE_SIZE))
@@ -202,12 +188,40 @@ while running:
             running = False
 
     keys = pygame.key.get_pressed()
-
     draw_map()
     draw_player()
     draw_friend()
 
-    current_tile = current_map[player_pos[1]][player_pos[0]]
+    current_tile = tile_map[player_pos[1]][player_pos[0]]
+
+    if game_state == "main":
+        if current_tile >= 5:
+            new_y = max(0, new_y - 5)
+            tile_map = [
+    [6, 6, 6, 6, 5, 5, 6, 6, 6, 6],
+    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+]
+        elif current_tile != 5:
+            tile_map = [
+    [0, 0, 4, 3, 3, 3, 3, 4, 2, 0],
+    [0, 0, 0, 4, 3, 3, 4, 0, 0, 0],
+    [0, 0, 0, 0, 4, 4, 0, 0, 0, 0],
+    [2, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 1, 0, 2, 0, 0],
+    [0, 0, 2, 0, 1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+    [0, 0, 2, 0, 1, 1, 0, 0, 0, 2],
+    [0, 0, 0, 0, 5, 5, 0, 0, 0, 0],
+]
 
     if game_state == "main":
         if current_tile == 4:
@@ -222,6 +236,7 @@ while running:
     clock.tick(FPS)
 
     # Movement logic
+    
     if keys[pygame.K_a] or keys[pygame.K_LEFT]:
         if is_walkable(new_x - 1, new_y):
             new_x -= 1
@@ -241,7 +256,6 @@ while running:
 
     player_pos = [new_x, new_y]
 
-    # After moving, check if on tile 5 to switch maps
     current_tile = current_map[player_pos[1]][player_pos[0]]
     if current_tile == 5:
         if current_map == map_one:
@@ -253,14 +267,5 @@ while running:
             player_pos = list(find_tile(5, current_map))
             new_x, new_y = player_pos
 
-    if current_tile == 8:
-        if current_map == map_two:
-            current_map = map_three
-            player_pos = list(find_tile(5, current_map) or (0, 0))
-            new_x, new_y = player_pos
-        else:
-            current_map = map_two
-            player_pos = list(find_tile(5, current_map) or (0, 0))
-            new_x, new_y = player_pos
 pygame.quit()
 sys.exit()

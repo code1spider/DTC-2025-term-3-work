@@ -31,26 +31,14 @@ map_two = [
     [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
     [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
     [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 8],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 8],
+    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
     [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
     [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
     [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
     [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
 ]
 
-map_three = [
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-    [3, 4, 2, 1, 2, 3, 4, 3, 1, 2],
-]
 # Puzzle variables
 start_1 = 0
 pins_clicked = [False] * 8
@@ -84,7 +72,6 @@ tile_images = {
     4: load_image("floor.png"),  # Marker for friend spawn
     5: load_image("doorshadow.png"),
     6: load_image("floor.png"),
-    8: load_image("doorshadow.png"),
 }
 
 # Load entities
@@ -253,14 +240,5 @@ while running:
             player_pos = list(find_tile(5, current_map))
             new_x, new_y = player_pos
 
-    if current_tile == 8:
-        if current_map == map_two:
-            current_map = map_three
-            player_pos = list(find_tile(5, current_map) or (0, 0))
-            new_x, new_y = player_pos
-        else:
-            current_map = map_two
-            player_pos = list(find_tile(5, current_map) or (0, 0))
-            new_x, new_y = player_pos
 pygame.quit()
 sys.exit()
