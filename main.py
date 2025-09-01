@@ -246,21 +246,21 @@ while running:
     if current_tile == 5:
         if current_map == map_one:
             current_map = map_two
-            player_pos = list(find_tile(5, current_map))
+            player_pos = (4, 1)
             new_x, new_y = player_pos
         else:
             current_map = map_one
-            player_pos = list(find_tile(5, current_map))
+            player_pos = (4, 8)
             new_x, new_y = player_pos
 
     if current_tile == 8:
         if current_map == map_two:
             current_map = map_three
-            player_pos = list(find_tile(5, current_map) or (0, 4))
+            player_pos = (1, 4)
             new_x, new_y = player_pos
         else:
             current_map = map_two
-            player_pos = list(find_tile(5, current_map) or (5, 9))
+            player_pos = (8, 4)
             new_x, new_y = player_pos
 pygame.quit()
 sys.exit()
