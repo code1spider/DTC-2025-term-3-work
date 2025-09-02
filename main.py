@@ -31,8 +31,8 @@ map_two = [
     [6, 6, 6, 6, 1, 1, 6, 6, 6, 6],
     [6, 6, 6, 6, 1, 1, 6, 6, 6, 6],
     [6, 6, 6, 6, 1, 1, 6, 6, 6, 6],
-    [1, 1, 1, 1, 1, 1, 1, 1, 0, 8],
-    [1, 1, 1, 1, 1, 1, 1, 0, 0, 8],
+    [9, 1, 1, 1, 1, 1, 1, 1, 1, 8],
+    [9, 1, 1, 1, 1, 1, 1, 1, 1, 8],
     [6, 6, 6, 6, 1, 1, 6, 6, 6, 6],
     [6, 6, 6, 6, 1, 1, 6, 6, 6, 6],
     [6, 6, 6, 6, 1, 1, 6, 6, 6, 6],
@@ -51,10 +51,23 @@ map_three = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ]
+
+map_four = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 10, 0, 0, 0, 9],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+]
 # Puzzle variables
 start_1 = 0
 pins_clicked = [False] * 8
-pin_values = [10, 5, 15, 20, 5, 10, -5, -10]  # Only one correct combo adds to 50
+pin_values = [10, 5, 15, 20, 5, 10, -5, -10]  # Combination translates to a series of numbers usable for a password/pin
 pin_rects = []
 for i in range(8):
     col = i % 4
@@ -85,6 +98,8 @@ tile_images = {
     5: load_image("doorshadow.png"),
     6: load_image("floor.png"),
     8: load_image("doorshadow.png"),
+    9: load_image("doorshadow.png"),
+    10: load_image("letter.png"),
 }
 
 # Load entities
@@ -262,5 +277,49 @@ while running:
             current_map = map_two
             player_pos = (8, 4)
             new_x, new_y = player_pos
+
+    if current_tile == 9:
+        if current_map == map_four:
+            current_map = map_two
+            player_pos = (1,5)
+            new_x, new_y = player_pos
+        else:
+            current_map = map_four
+            player_pos = (8,4)
+            new_x, new_y = player_pos
+
+    if current_tile == 10:
+        if keys[pygame.K_e]:
+            screen = pygame.display.set_mode((400, 400))  # or pygame.FULLSCREEN
+            pygame.display.set_caption("Letter Overlay Example")
+
+            # Load your letter image
+            letter_image = pygame.image.load("code.png")
+
+            # Optionally scale it to fit the screen
+            letter_image = pygame.transform.scale(letter_image, screen.get_size())
+
+            # Main loop
+            show_letter = True
+            while show_letter:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        show_letter = False
+                    elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                        # Press any key or click to exit the letter view
+                        show_letter = False
+
+                # Fill background (optional)
+                screen.fill((0, 0, 0))  # Black background
+
+                # Draw the letter image
+                screen.blit(letter_image, (0, 0))
+
+                # Update the screen
+                pygame.display.flip()
+
+            # Quit Pygame
+    
+
 pygame.quit()
 sys.exit()
