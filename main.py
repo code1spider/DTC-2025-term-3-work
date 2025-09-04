@@ -151,6 +151,7 @@ def get_player_name_and_code():
     # Compute access code
     if len(name_input) < 2:
         return name_input, 17
+        name_input = 2517
     second = name_input[1].lower()
     if not second.isalpha():
         return name_input, 17
