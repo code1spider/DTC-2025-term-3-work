@@ -19,7 +19,7 @@ map_one = [
     [0, 0, 4, 3, 3, 3, 3, 4, 2, 0],
     [0, 0, 0, 4, 3, 3, 4, 0, 0, 0],
     [0, 0, 0, 0, 4, 4, 0, 0, 0, 0],
-    [2, 0, 0, 0, 1, 1, 0, 0, 11, 0],
+    [2, 0, 0, 0, 1, 1, 0, 0, 0, 0],
     [0, 0, 0, 0, 1, 1, 0, 2, 0, 0],
     [0, 0, 2, 0, 1, 1, 0, 0, 0, 0],
     [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
@@ -163,18 +163,21 @@ def get_player_name_and_code():
 
     # Compute access code
     if len(name_input) < 2:
-        return name_input, 2517
+        return name_input, 17
+        name_input = 2517
     second = name_input[1].lower()
     if not second.isalpha():
-        return name_input, 2517
+        return name_input, 17
     value = ord(second) - ord('a') + 1
-    return name_input, 2571 if value < 10 else value
+    return name_input, 71 if value < 10 else value
 
 player_name, access_code_room3 = get_player_name_and_code()
 
 # Current map and player position — start on map_two tile 5
 current_map = map_two
 player_pos = list(find_tile(5, current_map))
+
+friend_pos = [8, 3]  # stays static for now
 
 # Walkability
 def is_walkable(x, y):
@@ -223,6 +226,9 @@ def draw_player():
 def draw_enemy():
     if enemy_active:
         screen.blit(enemy_image, (enemy_pos[0] * TILE_SIZE, enemy_pos[1] * TILE_SIZE))
+
+def draw_friend():
+    screen.blit(friend_image, (friend_pos[0] * TILE_SIZE, friend_pos[1] * TILE_SIZE))
 
 # Show interaction message
 def show_message(text):
@@ -302,6 +308,7 @@ while running:
     draw_map()
     draw_player()
     draw_enemy()
+    draw_friend()
 
     current_tile = current_map[player_pos[1]][player_pos[0]]
 
@@ -424,6 +431,17 @@ if current_tile == 9:
         current_map = map_two
         player_pos = (1, 5)
         new_x, new_y = player_pos
+
+
+    if current_tile == 9:
+        if current_map == map_four:
+            current_map = map_two
+            player_pos = (1,5)
+            new_x, new_y = player_pos
+        else:
+            current_map = map_four
+            player_pos = (8,4)
+            new_x, new_y = player_pos
 
     # Letter overlay for tile 10
     if current_tile == 10:
