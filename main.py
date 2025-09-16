@@ -103,9 +103,7 @@ tile_images = {
     8: load_image("doorshadow.png"),
     9: load_image("doorshadow.png"),
     10: load_image("letter.png"),
-    11: load_image("friend.png"),
-    12: load_image("floor.png"),
-    13: load_image("path.png"),
+    11: load_image("friend.png")
 }
 
 # Load entities
@@ -222,14 +220,6 @@ def draw_map():
 def draw_player():
     screen.blit(player_image, (player_pos[0] * TILE_SIZE, player_pos[1] * TILE_SIZE))
 
-# Draw enemy if active
-def draw_enemy():
-    if enemy_active:
-        screen.blit(enemy_image, (enemy_pos[0] * TILE_SIZE, enemy_pos[1] * TILE_SIZE))
-
-def draw_friend():
-    screen.blit(friend_image, (friend_pos[0] * TILE_SIZE, friend_pos[1] * TILE_SIZE))
-
 # Show interaction message
 def show_message(text):
     msg = font.render(text, True, (255, 255, 255))
@@ -307,8 +297,6 @@ while running:
     # Drawing
     draw_map()
     draw_player()
-    draw_enemy()
-    draw_friend()
 
     current_tile = current_map[player_pos[1]][player_pos[0]]
 
