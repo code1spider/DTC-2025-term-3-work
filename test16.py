@@ -31,12 +31,12 @@ map_one = [
 map_two = [
     [6, 6, 6, 6, 5, 5, 6, 6, 6, 6],
     [6, 6, 6, 6, 1, 1, 6, 6, 6, 6],
-    [6, 6, 6, 6, 1, 1, 6, 6, 6, 6],
-    [6, 6, 6, 6, 1, 1, 6, 6, 6, 6],
-    [9, 1, 1, 1, 1, 1, 1, 1, 1, 8],
-    [9, 1, 1, 1, 1, 1, 1, 1, 1, 8],
-    [6, 6, 6, 6, 1, 1, 6, 6, 6, 6],
-    [6, 6, 6, 6, 1, 1, 6, 6, 6, 6],
+    [6, 6, 6, 6, 1, 1, 6, 12, 12, 12],
+    [6, 6, 6, 6, 1, 1, 6, 12, 6, 6],
+    [9, 1, 1, 1, 1, 1, 1, 13, 1, 8],
+    [9, 1, 1, 1, 1, 1, 1, 13, 1, 8],
+    [6, 6, 6, 6, 1, 1, 6, 12, 6, 6],
+    [6, 6, 6, 6, 1, 1, 6, 12, 12, 12],
     [6, 6, 6, 6, 1, 1, 6, 6, 6, 6],
     [6, 6, 6, 6, 1, 1, 6, 6, 6, 6],
 ]
@@ -161,6 +161,17 @@ def get_player_name_and_code():
         pygame.display.flip()
         clock.tick(30)
 
+
+# Add this function after your existing functions, e.g., after line ~150
+def spawn_enemy():
+    global enemy_pos
+    while True:
+        ex = random.randint(0, MAP_WIDTH - 1)
+        ey = random.randint(0, MAP_HEIGHT - 1)
+        if [ex, ey] != player_pos and is_walkable(ex, ey):
+            enemy_pos = [ex, ey]
+            break
+
     # Compute access code
     if len(name_input) < 2:
         return name_input, 2517
@@ -236,11 +247,14 @@ def draw_puzzle():
     text = big_font.render("Circuit Puzzle: Solve the numbers!", True, (0, 255, 0))
     screen.blit(text, (50, 20))
 
-    for i, rect in enumerate(pin_rects):
-        color = (100, 100, 100) if not pins_clicked[i] else (0, 200, 0)
-        pygame.draw.rect(screen, color, rect)
-        pin_text = font.render(f"Pin {i+1}", True, (255, 255, 255))
-        screen.blit(pin_text, (rect.x, rect.y - 20))
+last_map = current_map
+
+
+for i, rect in enumerate(pin_rects):
+    color = (100, 100, 100) if not pins_clicked[i] else (0, 200, 0)
+    pygame.draw.rect(screen, color, rect)
+    pin_text = font.render(f"Pin {i+1}", True, (255, 255, 255))
+    screen.blit(pin_text, (rect.x, rect.y - 20))
 
     if all(pins_clicked):
         if start_1 == 50:
@@ -377,19 +391,22 @@ while running:
                             # Activate enemy in chase mode
                             enemy_active = True
                             # Choose a spawn position for enemy not same as player & walkable
-                            while True:
-                                ex = random.randint(0, MAP_WIDTH - 1)
-                                ey = random.randint(0, MAP_HEIGHT - 1)
-                                if [ex, ey] != player_pos and current_map[ey][ex] != 2:
-                                    enemy_pos = [ex, ey]
-                                    break
+                            # After this block in your main loop (right after you switch current_map and update player_pos)
+if current_map != last_map:
+    if current_map in (map_one, map_two, map_three):
+        spawn_enemy()
+        enemy_active = True
+    else:
+        enemy_active = False
+    last_map = current_map
 
-                            entering = False
-                    elif event.key == pygame.K_BACKSPACE:
-                        code_input = code_input[:-1]
-                    else:
-                        if len(code_input) < 4 and event.unicode.isdigit():
-                            code_input += event.unicode
+
+entering = False
+    elif event.key == pygame.K_BACKSPACE:
+        code_input = code_input[:-1]
+    else:
+    if len(code_input) < 4 and event.unicode.isdigit():
+        code_input += event.unicode
         new_x, new_y = player_pos
 
     # If in map_three tile 8, go back and disable chase
@@ -400,30 +417,28 @@ while running:
         enemy_active = True
 
     # Spawn enemy at a random walkable position, not on player
-dontspam2 = off
-
-while True:
-    if dontspam2 == off:
-        ex = random.randint(0, MAP_WIDTH - 1)
-        ey = random.randint(0, MAP_HEIGHT - 1)
-    if [ex, ey] != player_pos and is_walkable(ex, ey):
-        enemy_pos = [ex, ey]
-        dontspam2 = on
-        break
+    # After player moves and map switches
+if current_map != last_map:
+    if current_map in (map_one, map_two, map_three):
+        spawn_enemy()
+        enemy_active = True
+    else:
+        enemy_active = False
+    last_map = current_map
 
 
 
 
     # Switch map if on tile 9
-if current_tile == 9:
-    if current_map == map_two:
-        current_map = map_four
-        player_pos = (8, 4)
-        new_x, new_y = player_pos
-    else:
-        current_map = map_two
-        player_pos = (1, 5)
-        new_x, new_y = player_pos
+    if current_tile == 9:
+        if current_map == map_two:
+            current_map = map_four
+            player_pos = (8, 4)
+            new_x, new_y = player_pos
+        else:
+            current_map = map_two
+            player_pos = (1, 5)
+            new_x, new_y = player_pos
 
     # Letter overlay for tile 10
     if current_tile == 10:
