@@ -1,11 +1,10 @@
-import pygame
+
+import pygame 
 import sys
 import os
 import time
-import random
 
 # Constants
-
 game_state = "main"
 TILE_SIZE = 40
 MAP_WIDTH = 10
@@ -20,6 +19,7 @@ map_one = [
     [0, 0, 0, 4, 3, 3, 4, 0, 0, 0],
     [0, 0, 0, 0, 4, 4, 0, 0, 0, 0],
     [2, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+    [2, 0, 0, 0, 1, 1, 0, 0, 11, 0],
     [0, 0, 0, 0, 1, 1, 0, 2, 0, 0],
     [0, 0, 2, 0, 1, 1, 0, 0, 0, 0],
     [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
@@ -66,11 +66,10 @@ map_four = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ]
-
 # Puzzle variables
 start_1 = 0
 pins_clicked = [False] * 8
-pin_values = [10, 5, 15, 20, 5, 10, -5, -10]
+pin_values = [10, 5, 15, 20, 5, 10, -5, -10]  # Combination translates to a series of numbers usable for a password/pin
 pin_rects = []
 for i in range(8):
     col = i % 4
@@ -83,7 +82,7 @@ for i in range(8):
 pygame.init()
 font = pygame.font.SysFont(None, 24)
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-pygame.display.set_caption("Tile Map with Entities + Chase")
+pygame.display.set_caption("Tile Map with Entities")
 clock = pygame.time.Clock()
 
 # Load image helper
@@ -112,13 +111,6 @@ friend_image = load_image("friend.png")
 end_led_off = load_image("end_led_off.png")
 end_led_on = load_image("end_led_on.png")
 end_led_wrong = load_image("end_led_wrong.png")
-
-# --- Add enemy setup ---
-enemy_image = load_image("enemy.png")  # make sure this asset exists
-enemy_pos = [0, 0]
-enemy_active = False  # turns on when in map_three
-ENEMY_MOVE_EVENT = pygame.USEREVENT + 1
-pygame.time.set_timer(ENEMY_MOVE_EVENT, 500)
 
 # Utility to find the first tile with a given value
 def find_tile(tile_value, tile_map):
@@ -159,25 +151,20 @@ def get_player_name_and_code():
         pygame.display.flip()
         clock.tick(30)
 
-    # --- Access code logic ---
+    # Compute access code
     if len(name_input) < 2:
-        return name_input, 17  # fallback if name too short
-
-    second_char = name_input[1].lower()
-
-    if not second_char.isalpha():
-        return name_input, 17  # fallback if second char is not a letter
-
-    # Access code is position in alphabet: a=1, b=2, ..., z=26
-    access_code = ord(second_char) - ord('a') + 1
-
-    print(f"[DEBUG] Name: {name_input}, Second letter: '{second_char.upper()}', Access Code: {access_code}")
-
-    return name_input, access_code
-
+        return name_input, 17
+        name_input = 2517
+        return name_input, 2517
+    second = name_input[1].lower()
+    if not second.isalpha():
+        return name_input, 17
+        return name_input, 2517
+    value = ord(second) - ord('a') + 1
+    return name_input, 71 if value < 10 else value
+    return name_input, 2571 if value < 10 else value
 
 player_name, access_code_room3 = get_player_name_and_code()
-
 # Current map and player position — start on map_two tile 5
 current_map = map_two
 player_pos = list(find_tile(5, current_map))
@@ -190,8 +177,6 @@ def is_walkable(x, y):
         return current_map[y][x] not in (2, 3)
     return False
 
-
-
 # Draw map
 def draw_map():
     for y in range(MAP_HEIGHT):
@@ -201,9 +186,12 @@ def draw_map():
             if image:
                 screen.blit(image, (x * TILE_SIZE, y * TILE_SIZE))
 
-# Draw player
+# Draw entities
 def draw_player():
     screen.blit(player_image, (player_pos[0] * TILE_SIZE, player_pos[1] * TILE_SIZE))
+
+def draw_friend():
+    screen.blit(friend_image, (friend_pos[0] * TILE_SIZE, friend_pos[1] * TILE_SIZE))
 
 # Show interaction message
 def show_message(text):
@@ -241,6 +229,7 @@ def draw_puzzle():
 # Puzzle logic
 def handle_puzzle():
     global game_state, start_1, pins_clicked
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -264,16 +253,6 @@ new_x, new_y = player_pos
 while running:
     screen.fill((0, 0, 0))
 
-    if game_state != "puzzle":
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == ENEMY_MOVE_EVENT and enemy_active:
-                enemy_pos = move_enemy_towards_player(enemy_pos, player_pos)
-
-
-    keys = pygame.key.get_pressed()
-
     if game_state == 'puzzle':
         handle_puzzle()
         draw_puzzle()
@@ -281,9 +260,15 @@ while running:
         clock.tick(FPS)
         continue
 
-    # Drawing
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    keys = pygame.key.get_pressed()
+
     draw_map()
     draw_player()
+    draw_friend()
 
     current_tile = current_map[player_pos[1]][player_pos[0]]
 
@@ -293,13 +278,13 @@ while running:
             dontspam = 1
             if keys[pygame.K_e]:
                 game_state = "puzzle"
-        else:
+        elif current_tile != 4:
             dontspam = 0
 
     pygame.display.flip()
     clock.tick(FPS)
 
-    # Movement logic for player
+    # Movement logic
     if keys[pygame.K_a] or keys[pygame.K_LEFT]:
         if is_walkable(new_x - 1, new_y):
             new_x -= 1
@@ -321,7 +306,6 @@ while running:
 
     # After moving, check if on tile 5 to switch maps
     current_tile = current_map[player_pos[1]][player_pos[0]]
-
     if current_tile == 5:
         if current_map == map_one:
             current_map = map_two
@@ -332,7 +316,6 @@ while running:
             player_pos = (4, 8)
             new_x, new_y = player_pos
 
-    # Password / code input when on tile 8 in map_two
     if current_tile == 8 and current_map == map_two:
         code_input = ""
         input_box = pygame.Rect(100, 200, 200, 40)
@@ -348,77 +331,73 @@ while running:
             pygame.display.flip()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+                    pygame.quit(); sys.exit()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
                         if code_input.isdigit() and int(code_input) == access_code_room3:
                             access_code_room3 = 25 + access_code_room3
                             current_map = map_three
                             player_pos = [1, 4]
-                            
-                            # Activate enemy in chase mode
-                            enemy_active = True
-                            # Choose a spawn position for enemy not same as player & walkable
-                            while True:
-                                ex = random.randint(0, MAP_WIDTH - 1)
-                                ey = random.randint(0, MAP_HEIGHT - 1)
-                                if [ex, ey] != player_pos and current_map[ey][ex] != 2:
-                                    enemy_pos = [ex, ey]
-                                    break
-
                             entering = False
                     elif event.key == pygame.K_BACKSPACE:
                         code_input = code_input[:-1]
-                    elif event.key == pygame.K_ESCAPE:
-                        entering = False
-
                     else:
                         if len(code_input) < 4 and event.unicode.isdigit():
                             code_input += event.unicode
         new_x, new_y = player_pos
-
-    # If in map_three tile 8, go back and disable chase
     elif current_tile == 8 and current_map == map_three:
         current_map = map_two
-        player_pos = [8, 4]
+        player_pos = [8,4]
         new_x, new_y = player_pos
-        enemy_active = True
-
-    # Spawn enemy at a random walkable position, not on player
 
 
-
-
-
-    # Switch map if on tile 9
     if current_tile == 9:
+        if current_map == map_four:
+            current_map = map_two
+            player_pos = (1,5)
+            new_x, new_y = player_pos
+        else:
         if current_map == map_two:
             current_map = map_four
-            player_pos = [8, 4]
+            player_pos = (8,4)
+            new_x, new_y = player_pos
         else:
             current_map = map_two
-            player_pos = [1, 5]
-        new_x, new_y = player_pos
+            player_pos = (1,5)
+            new_x, new_y = player_pos
 
-
-    # Letter overlay for tile 10
     if current_tile == 10:
         if keys[pygame.K_e]:
-            screen = pygame.display.set_mode((400, 400))
+            screen = pygame.display.set_mode((400, 400))  # or pygame.FULLSCREEN
             pygame.display.set_caption("Letter Overlay Example")
+
+            # Load your letter image
             letter_image = pygame.image.load("code.png")
+
+            # Optionally scale it to fit the screen
             letter_image = pygame.transform.scale(letter_image, screen.get_size())
+
+            # Main loop
             show_letter = True
             while show_letter:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         show_letter = False
                     elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                        # Press any key or click to exit the letter view
                         show_letter = False
-                screen.fill((0, 0, 0))
+
+                # Fill background (optional)
+                screen.fill((0, 0, 0))  # Black background
+
+                # Draw the letter image
                 screen.blit(letter_image, (0, 0))
+
+                # Update the screen
                 pygame.display.flip()
+
+            # Quit Pygame
+    
 
 pygame.quit()
 sys.exit()

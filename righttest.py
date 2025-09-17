@@ -103,7 +103,9 @@ tile_images = {
     8: load_image("doorshadow.png"),
     9: load_image("doorshadow.png"),
     10: load_image("letter.png"),
-    11: load_image("friend.png")
+    11: load_image("friend.png"),
+    12: load_image("floor.png"),
+    13: load_image("path.png"),
 }
 
 # Load entities
@@ -159,22 +161,15 @@ def get_player_name_and_code():
         pygame.display.flip()
         clock.tick(30)
 
-    # --- Access code logic ---
+    # Compute access code
     if len(name_input) < 2:
-        return name_input, 17  # fallback if name too short
-
-    second_char = name_input[1].lower()
-
-    if not second_char.isalpha():
-        return name_input, 17  # fallback if second char is not a letter
-
-    # Access code is position in alphabet: a=1, b=2, ..., z=26
-    access_code = ord(second_char) - ord('a') + 1
-
-    print(f"[DEBUG] Name: {name_input}, Second letter: '{second_char.upper()}', Access Code: {access_code}")
-
-    return name_input, access_code
-
+        return name_input, 17
+        name_input = 2517
+    second = name_input[1].lower()
+    if not second.isalpha():
+        return name_input, 17
+    value = ord(second) - ord('a') + 1
+    return name_input, 71 if value < 10 else value
 
 player_name, access_code_room3 = get_player_name_and_code()
 
@@ -190,7 +185,29 @@ def is_walkable(x, y):
         return current_map[y][x] not in (2, 3)
     return False
 
-
+# Enemy movement toward player
+def move_enemy_towards_player(epos, ppos):
+    ex, ey = epos
+    px, py = ppos
+    dx = px - ex
+    dy = py - ey
+    # choose horizontal or vertical depending which is farther
+    if abs(dx) > abs(dy):
+        step_x = 1 if dx > 0 else -1
+        if is_walkable(ex + step_x, ey):
+            return [ex + step_x, ey]
+        # fallback to vertical
+        step_y = 1 if dy > 0 else -1
+        if is_walkable(ex, ey + step_y):
+            return [ex, ey + step_y]
+    else:
+        step_y = 1 if dy > 0 else -1
+        if is_walkable(ex, ey + step_y):
+            return [ex, ey + step_y]
+        step_x = 1 if dx > 0 else -1
+        if is_walkable(ex + step_x, ey):
+            return [ex + step_x, ey]
+    return [ex, ey]
 
 # Draw map
 def draw_map():
@@ -204,6 +221,14 @@ def draw_map():
 # Draw player
 def draw_player():
     screen.blit(player_image, (player_pos[0] * TILE_SIZE, player_pos[1] * TILE_SIZE))
+
+# Draw enemy if active
+def draw_enemy():
+    if enemy_active:
+        screen.blit(enemy_image, (enemy_pos[0] * TILE_SIZE, enemy_pos[1] * TILE_SIZE))
+
+def draw_friend():
+    screen.blit(friend_image, (friend_pos[0] * TILE_SIZE, friend_pos[1] * TILE_SIZE))
 
 # Show interaction message
 def show_message(text):
@@ -264,13 +289,11 @@ new_x, new_y = player_pos
 while running:
     screen.fill((0, 0, 0))
 
-    if game_state != "puzzle":
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == ENEMY_MOVE_EVENT and enemy_active:
-                enemy_pos = move_enemy_towards_player(enemy_pos, player_pos)
-
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == ENEMY_MOVE_EVENT and enemy_active:
+            enemy_pos = move_enemy_towards_player(enemy_pos, player_pos)
 
     keys = pygame.key.get_pressed()
 
@@ -284,6 +307,8 @@ while running:
     # Drawing
     draw_map()
     draw_player()
+    draw_enemy()
+    draw_friend()
 
     current_tile = current_map[player_pos[1]][player_pos[0]]
 
@@ -321,7 +346,6 @@ while running:
 
     # After moving, check if on tile 5 to switch maps
     current_tile = current_map[player_pos[1]][player_pos[0]]
-
     if current_tile == 5:
         if current_map == map_one:
             current_map = map_two
@@ -370,9 +394,6 @@ while running:
                             entering = False
                     elif event.key == pygame.K_BACKSPACE:
                         code_input = code_input[:-1]
-                    elif event.key == pygame.K_ESCAPE:
-                        entering = False
-
                     else:
                         if len(code_input) < 4 and event.unicode.isdigit():
                             code_input += event.unicode
@@ -386,21 +407,41 @@ while running:
         enemy_active = True
 
     # Spawn enemy at a random walkable position, not on player
+dontspam2 = off
 
+while True:
+    if dontspam2 == off:
+        ex = random.randint(0, MAP_WIDTH - 1)
+        ey = random.randint(0, MAP_HEIGHT - 1)
+    if [ex, ey] != player_pos and is_walkable(ex, ey):
+        enemy_pos = [ex, ey]
+        dontspam2 = on
+        break
 
 
 
 
     # Switch map if on tile 9
-    if current_tile == 9:
-        if current_map == map_two:
-            current_map = map_four
-            player_pos = [8, 4]
-        else:
-            current_map = map_two
-            player_pos = [1, 5]
+if current_tile == 9:
+    if current_map == map_two:
+        current_map = map_four
+        player_pos = (8, 4)
+        new_x, new_y = player_pos
+    else:
+        current_map = map_two
+        player_pos = (1, 5)
         new_x, new_y = player_pos
 
+
+    if current_tile == 9:
+        if current_map == map_four:
+            current_map = map_two
+            player_pos = (1,5)
+            new_x, new_y = player_pos
+        else:
+            current_map = map_four
+            player_pos = (8,4)
+            new_x, new_y = player_pos
 
     # Letter overlay for tile 10
     if current_tile == 10:
